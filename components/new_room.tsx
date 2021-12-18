@@ -1,15 +1,35 @@
 import React, { Fragment, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useRouter } from 'next/router';
+import { useEthers, useEtherBalance } from '@usedapp/core';
+import { formatEther } from '@ethersproject/units';
+interface ModalProps {
+  open: boolean;
+  setOpen: any;
+}
 
-export default function NewRoomModal() {
+export default function NewRoomModal({ open, setOpen }: ModalProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(true);
+
+  const { account } = useEthers();
+  const etherBalance = useEtherBalance(account);
+  const etherBalanceFormated = etherBalance
+    ? parseFloat(formatEther(etherBalance))
+    : 0;
 
   const cancelButtonRef = useRef(null);
 
-  const [amount, setAmount] = useState('');
+  const [submitBtnDisabled, setSubmitBtnDisabled] = useState(true);
+
+  const [amount, setAmount] = useState('0');
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(event.target.value);
+    console.log(value);
+    if (value <= 0 || value > etherBalanceFormated) {
+      setSubmitBtnDisabled(true);
+    } else {
+      setSubmitBtnDisabled(false);
+    }
     setAmount(event.target.value);
   };
 
@@ -19,11 +39,13 @@ export default function NewRoomModal() {
   };
 
   const handleSubmit = () => {
+    // TODO send tx
+    console.log(rounds, amount);
     router.push({ pathname: '/room', query: { id: 1 } });
   };
 
   return (
-    <Transition.Root show={open} as={Fragment}>
+    <Transition.Root show={open} as={Fragment} appear={true}>
       <Dialog
         as="div"
         className="fixed z-10 inset-0 overflow-y-auto"
@@ -98,13 +120,17 @@ export default function NewRoomModal() {
                             Số tiền cược
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             name="amount"
                             id="amount"
                             onChange={handleAmountChange}
                             value={amount}
+                            min={0}
                             className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                           />
+                          <div className="block text-sm font-medium text-gray-700">
+                            Max: {etherBalanceFormated} ETH
+                          </div>
                         </div>
 
                         <div className="col-span-6">
@@ -115,11 +141,12 @@ export default function NewRoomModal() {
                             Số vòng
                           </label>
                           <input
-                            type="text"
+                            type="number"
                             name="rounds"
                             id="rounds"
                             onChange={handleRoundsChange}
                             value={rounds}
+                            min={1}
                             className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                           />
                         </div>
@@ -133,6 +160,7 @@ export default function NewRoomModal() {
                   type="button"
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
                   onClick={handleSubmit}
+                  disabled={submitBtnDisabled}
                 >
                   Tạo phòng
                 </button>

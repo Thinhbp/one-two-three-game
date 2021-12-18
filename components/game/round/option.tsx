@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import gameStyles from '../../../styles/Game.module.css';
+import { ROUND_STATUS_LIST } from '.';
 
 interface OptionProps {
+  roundStatus: number;
   setRoundStatus: any;
   secretKey: string;
   setSecretKey: any;
@@ -11,6 +13,7 @@ interface OptionProps {
 }
 
 const Option = ({
+  roundStatus,
   setRoundStatus,
   secretKey,
   setSecretKey,
@@ -61,6 +64,7 @@ const Option = ({
                   id="secretKey"
                   onChange={handleSecretKeyChange}
                   value={secretKey}
+                  disabled={roundStatus > ROUND_STATUS_LIST.SEND_KEY}
                   className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>

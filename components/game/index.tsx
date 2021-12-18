@@ -1,24 +1,32 @@
 import React, { useState } from 'react';
+import Result from './result';
 import Round from './round';
 
 interface GameProps {
   roomId: string;
 }
 
-export enum ROUND_STATUS_LIST {
-  CHOOSE_OPTION,
-  WAITING_CHOOSE_OPTION,
-  SEND_KEY,
-  WAITING_RESULT,
-  SEE_RESULT,
+export enum GAME_STATUS {
+  PLAYING,
+  FINISHED,
 }
 
 const Game = ({ roomId }: GameProps) => {
   const [currentRound, setCurrentRound] = useState(1);
 
+  const [status, setStatus] = useState(GAME_STATUS.PLAYING);
+
   return (
     <>
-      <Round currentRound={currentRound} setCurrentRound={setCurrentRound} />
+      {status === GAME_STATUS.PLAYING && (
+        <Round
+          currentRound={currentRound}
+          setCurrentRound={setCurrentRound}
+          setGameStatus={setStatus}
+        />
+      )}
+
+      {status === GAME_STATUS.FINISHED && <Result setGameStatus={setStatus} />}
     </>
   );
 };

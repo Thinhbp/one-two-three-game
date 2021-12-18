@@ -7,6 +7,8 @@ interface StatusProps {
   setCurrentRound: any;
   roundStatus: number;
   setRoundStatus: any;
+  selectedOption: number;
+  secretKey: string;
 }
 
 const Status = ({
@@ -14,19 +16,33 @@ const Status = ({
   setCurrentRound,
   roundStatus,
   setRoundStatus,
+  selectedOption,
+  secretKey,
 }: StatusProps) => {
   const router = useRouter();
 
   const submitOption = () => {
+    if (selectedOption < 0) {
+      return;
+    }
+
     setRoundStatus(ROUND_STATUS_LIST.WAITING_CHOOSE_OPTION);
+
+    setTimeout(() => {
+      setRoundStatus(ROUND_STATUS_LIST.SEND_KEY);
+    }, 1000);
   };
 
   const submitSecretKey = () => {
-    setRoundStatus(ROUND_STATUS_LIST.WAITING_RESULT);
-  };
+    if (secretKey.trim() === '') {
+      return;
+    }
 
-  const toHomePage = () => {
-    router.push('/');
+    setRoundStatus(ROUND_STATUS_LIST.WAITING_RESULT);
+
+    setTimeout(() => {
+      setRoundStatus(ROUND_STATUS_LIST.SEE_RESULT);
+    }, 1000);
   };
 
   return (
@@ -61,13 +77,7 @@ const Status = ({
         )}
 
         {roundStatus === ROUND_STATUS_LIST.SEE_RESULT && (
-          <a
-            href="#"
-            className="ml-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-            onClick={toHomePage}
-          >
-            Trang chủ
-          </a>
+          <div>123ffffffffffffff</div>
         )}
       </div>
     </>
