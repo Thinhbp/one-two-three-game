@@ -36,6 +36,8 @@ const Status = ({
     inputSecretState,
   } = useContract();
 
+  console.log(gameData);
+
   const submitOption = () => {
     if (selectedOption < 0) {
       return;
