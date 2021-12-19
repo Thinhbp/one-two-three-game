@@ -3,15 +3,16 @@ import {} from '@heroicons/react/outline';
 import { useEthers, useEtherBalance } from '@usedapp/core';
 import { formatEther } from '@ethersproject/units';
 import { useRouter } from 'next/router';
+import { showAddress } from '../hooks/utils';
 
-const Header = () => {
+const Header = (props: any) => {
   const router = useRouter();
 
   const { account, activateBrowserWallet, deactivate } = useEthers();
   const etherBalance = useEtherBalance(account);
 
   const home = () => {
-    router.push('/');
+    props.setPage({ id: 0 });
   };
 
   return (
@@ -42,8 +43,7 @@ const Header = () => {
                   href="#"
                   className="ml-8 mr-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
                 >
-                  {account.slice(0, 6)}...
-                  {account.slice(account.length - 4, account.length)}
+                  {showAddress(account)}
                 </a>
                 <a
                   href="#"

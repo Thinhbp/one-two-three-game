@@ -29,7 +29,7 @@ const Header = ({ currentRound, roundStatus, roomId }: HeaderProps) => {
             </div>
           </header>
         </div>
-        {roundStatus < ROUND_STATUS_LIST.WAITING_CHOOSE_OPTION && (
+        {roundStatus <= ROUND_STATUS_LIST.SEND_KEY && (
           <div className="mt-5 flex lg:mt-0 lg:ml-4" onClick={handleWithdraw}>
             <span className="hidden sm:block">
               <button

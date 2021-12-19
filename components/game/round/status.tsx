@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { ROUND_STATUS_LIST } from '.';
 import { useContract } from '../../../hooks/useContract';
 import { utils } from 'ethers';
+import { GAME_STATUS } from '..';
 
 interface StatusProps {
   currentRound: number;
@@ -14,6 +15,7 @@ interface StatusProps {
   hashCode: string;
   roomId: number;
   gameData: any;
+  setGameStatus: any;
 }
 
 const Status = ({
@@ -26,6 +28,7 @@ const Status = ({
   hashCode,
   roomId,
   gameData,
+  setGameStatus,
 }: StatusProps) => {
   const router = useRouter();
 
@@ -37,20 +40,21 @@ const Status = ({
   } = useContract();
 
   const submitOption = () => {
-    if (selectedOption < 0) {
-      return;
-    }
+    if (!gameData) return;
+    console.log('submit option', roomId, hashCode, gameData.Bet_amount);
 
-    setRoundStatus(ROUND_STATUS_LIST.WAITING_CHOOSE_OPTION);
-
-    sendSelectGuess(roomId, utils.formatBytes32String(hashCode), {
-      value: utils.parseEther(gameData.Bet_amount),
+    sendSelectGuess(roomId, hashCode, {
+      value: utils.parseEther(gameData.Bet_amount / 10 ** 18 + ''),
     });
+    setRoundStatus(ROUND_STATUS_LIST.WAITING_CHOOSE_OPTION);
   };
 
   useEffect(() => {
     if (selectGuessState.status === 'Success') {
       setRoundStatus(ROUND_STATUS_LIST.SEND_KEY);
+    } else if (selectGuessState.status === 'Exception') {
+      alert(selectGuessState.errorMessage);
+      setRoundStatus(ROUND_STATUS_LIST.CHOOSE_OPTION);
     }
   }, [selectGuessState]);
 
@@ -59,14 +63,16 @@ const Status = ({
       return;
     }
 
-    setRoundStatus(ROUND_STATUS_LIST.WAITING_RESULT);
-
     sendInputSecret(secretKey, roomId);
+    setRoundStatus(ROUND_STATUS_LIST.WAITING_SEND_KEY);
   };
 
   useEffect(() => {
     if (inputSecretState.status === 'Success') {
-      setRoundStatus(ROUND_STATUS_LIST.SEE_RESULT);
+      setGameStatus(GAME_STATUS.FINISHED);
+    } else if (inputSecretState.status === 'Exception') {
+      alert(inputSecretState.errorMessage);
+      setRoundStatus(ROUND_STATUS_LIST.SEND_KEY);
     }
   }, [inputSecretState]);
 
@@ -97,12 +103,12 @@ const Status = ({
           </a>
         )}
 
-        {roundStatus === ROUND_STATUS_LIST.WAITING_RESULT && (
-          <div>Đã gửi key. Đang tính kết quả...</div>
+        {roundStatus === ROUND_STATUS_LIST.WAITING_SEND_KEY && (
+          <div>Đang đợi 2 player gửi key...</div>
         )}
 
-        {roundStatus === ROUND_STATUS_LIST.SEE_RESULT && (
-          <div>123ffffffffffffff</div>
+        {roundStatus === ROUND_STATUS_LIST.WAITING_RESULT && (
+          <div>Cả 2 player đã gửi key. Đang tính kết quả...</div>
         )}
       </div>
     </>

@@ -16,10 +16,10 @@ export const useContractV2 = () => {
     const contractInstance = new web3js.eth.Contract(abi, contractAddress)
 
     const getRoom = async (index: number) => {
-        const data = await contractInstance.methods.arrRoom(index).call()
+        console.log('-> get room v2', index)
+        const data = await contractInstance.methods.arrRoom(index + '').call()
+        if (!data) return null
         data.Id = index
-        data.Guess_1 = utils.parseBytes32String(data.Guess_1)
-        data.Guess_2 = utils.parseBytes32String(data.Guess_2)
         console.log('get room v2', index, data)
         return data
     }

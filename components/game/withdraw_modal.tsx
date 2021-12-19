@@ -15,14 +15,23 @@ export default function Withdraw({ open, setOpen, roomId }: ModalProps) {
 
   const { withdrawState, sendWithdraw } = useContract();
 
+  const [withdrawBtnText, setWithdrawBtnText] = useState('Rút tiền');
+  const [withdrawBtnDisabled, setWithdrawBtnDisabled] = useState(false);
+
   const withdraw = () => {
     sendWithdraw(roomId);
+    setWithdrawBtnText('Đang rút tiền...');
+    setWithdrawBtnDisabled(true);
   };
 
   useEffect(() => {
     if (withdrawState.status === 'Success') {
       console.log('withdrawed');
       setOpen(false);
+    } else if (withdrawState.status === 'Exception') {
+      alert(withdrawState.errorMessage);
+      setWithdrawBtnText('Rút tiền');
+      setWithdrawBtnDisabled(false);
     }
   }, [withdrawState]);
 
@@ -81,9 +90,7 @@ export default function Withdraw({ open, setOpen, roomId }: ModalProps) {
                     </Dialog.Title>
                     <div className="mt-2">
                       <p className="text-sm text-gray-500">
-                        Are you sure you want to deactivate your account? All of
-                        your data will be permanently removed. This action
-                        cannot be undone.
+                        Rút tiền đã đặt và thoát khỏi phòng?
                       </p>
                     </div>
                   </div>
@@ -94,8 +101,9 @@ export default function Withdraw({ open, setOpen, roomId }: ModalProps) {
                   type="button"
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
                   onClick={withdraw}
+                  disabled={withdrawBtnDisabled}
                 >
-                  Rút tiền
+                  {withdrawBtnText}
                 </button>
                 <button
                   type="button"
@@ -103,7 +111,7 @@ export default function Withdraw({ open, setOpen, roomId }: ModalProps) {
                   onClick={() => setOpen(false)}
                   ref={cancelButtonRef}
                 >
-                  Cancel
+                  Hủy
                 </button>
               </div>
             </div>

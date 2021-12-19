@@ -24,6 +24,7 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
   const cancelButtonRef = useRef(null);
 
   const [submitBtnDisabled, setSubmitBtnDisabled] = useState(true);
+  const [submitBtnText, setSubmitBtnText] = useState('Tạo phòng');
 
   const [amount, setAmount] = useState('0');
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,15 +56,19 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
 
   const handleSubmit = () => {
     // send tx
-    // console.log(availableRoomId, utils.formatBytes32String(hashcode), amount);
-    sendSelectGuess(availableRoomId, utils.formatBytes32String(hashcode), {
+    console.log('submit room', availableRoomId, hashcode, amount);
+    sendSelectGuess(availableRoomId, hashcode, {
       value: utils.parseEther(amount),
     });
   };
 
   useEffect(() => {
     if (selectGuessState.status === 'Success') {
-      router.push({ pathname: '/room', query: { id: availableRoomId } });
+      // router.push({ pathname: '/room', query: { id: availableRoomId } });
+      setOpen(false);
+    } else if (selectGuessState.status === 'Mining') {
+      setSubmitBtnText('Đang tạo phòng...');
+      setSubmitBtnDisabled(true);
     }
   }, [selectGuessState]);
 
@@ -184,7 +189,7 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
                   onClick={handleSubmit}
                   disabled={submitBtnDisabled}
                 >
-                  Tạo phòng
+                  {submitBtnText}
                 </button>
                 <button
                   type="button"
@@ -192,7 +197,7 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
                   onClick={() => setOpen(false)}
                   ref={cancelButtonRef}
                 >
-                  Cancel
+                  Hủy
                 </button>
               </div>
             </div>

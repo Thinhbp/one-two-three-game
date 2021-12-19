@@ -1,16 +1,39 @@
-import { useRouter } from 'next/router';
 import React, { useState, useEffect } from 'react';
-import { GAME_STATUS } from '.';
+import { useEthers } from '@usedapp/core';
+import { useContractV2 } from '../../hooks/useContractV2';
 
 interface ResultProps {
-  setGameStatus: any;
+  setPage: any;
+  roomId: number;
 }
 
-const Result = ({ setGameStatus }: ResultProps) => {
-  const router = useRouter();
+const Result = ({ setPage, roomId }: ResultProps) => {
+  const { account } = useEthers();
+
+  const { getRoom: getRoomV2 } = useContractV2();
+
+  const [gameData, setGameData] = useState<any>();
+
+  const [status, setStatus] = useState('');
+
+  useEffect(() => {
+    getRoomV2(roomId).then((result) => {
+      if (!result) return;
+      console.log('get room in result', roomId, result);
+      setGameData(result);
+
+      if (result.Result === '0') {
+        setStatus('Hòa');
+      } else if (result[`Address_${result.Result}`] === account) {
+        setStatus('Bạn đã thắng');
+      } else {
+        setStatus('Bạn đã thua');
+      }
+    });
+  }, [roomId]);
 
   const toHomePage = () => {
-    router.push('/');
+    setPage({ id: 0 });
   };
 
   return (
@@ -19,7 +42,9 @@ const Result = ({ setGameStatus }: ResultProps) => {
         <div className="flex-1 min-w-0">
           <header className="bg-white">
             <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-              <h1 className="text-2xl font-bold text-gray-900">you won</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Kết quả: {status}
+              </h1>
             </div>
           </header>
         </div>

@@ -2,17 +2,20 @@ import { PlusIcon } from '@heroicons/react/outline';
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import NewRoomModal from './new_room';
-import { useContract } from '../hooks/useContract';
-import { useContractV2 } from '../hooks/useContractV2';
+import { showAddress } from '../hooks/utils';
+import Web3 from 'web3';
+
 interface RoomsProps {
   header: string;
-  type: number;
+  roomsData: any[];
   showCreateNewRoomBtn?: boolean;
+  setPage: any;
 }
 
 export default function Rooms({
   header,
-  type,
+  roomsData,
+  setPage,
   showCreateNewRoomBtn,
 }: RoomsProps) {
   const router = useRouter();
@@ -22,32 +25,14 @@ export default function Rooms({
   const columns = [
     { name: '#' },
     { name: 'Room' },
+    { name: 'Owner' },
     { name: 'Coin' },
     { name: 'Amount' },
     { name: 'Status' },
   ];
 
-  const { useGetRooms, getRoom } = useContract();
-  const { getRoom: getRoomV2 } = useContractV2();
-
-  const rooms = useGetRooms();
-
-  const [roomsData, setRoomsData] = useState<any[]>([]);
-
-  rooms.forEach(async (status: any, index: number) => {
-    if (status) {
-      const room = await getRoomV2(index);
-      setRoomsData((arr: any[]) => {
-        if (arr.findIndex((v: any) => v.Id === room.Id) === -1) {
-          arr.push(room);
-        }
-        return arr;
-      });
-    }
-  });
-
   const handleSelectRoom = (room: any) => {
-    router.push({ pathname: '/room', query: { id: room.Id } });
+    setPage({ id: 1, roomId: room.Id });
   };
 
   return (
@@ -106,7 +91,9 @@ export default function Rooms({
                 <tbody className="bg-white divide-y divide-gray-200">
                   {roomsData.map((room: any, index: number) => (
                     <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap">{index}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {index + 1}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <a
                           href="#"
@@ -116,16 +103,21 @@ export default function Rooms({
                           Room {room.Id}
                         </a>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {showAddress(room.Address_1)}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                           ETH
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {room.Bet_amount}
+                        {Web3.utils.fromWei(room.Bet_amount, 'ether')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {room.Status}
+                        {room.Status === '0' && 'Empty'}
+                        {room.Status === '1' && '1 player'}
+                        {room.Status === '2' && '2 players'}
                       </td>
                     </tr>
                   ))}

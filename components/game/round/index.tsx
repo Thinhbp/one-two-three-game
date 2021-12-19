@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { GAME_STATUS } from '..';
 import Header from './header';
 import Option from './option';
 import Status from './status';
@@ -17,6 +16,7 @@ export enum ROUND_STATUS_LIST {
   CHOOSE_OPTION,
   WAITING_CHOOSE_OPTION,
   SEND_KEY,
+  WAITING_SEND_KEY,
   WAITING_RESULT,
   SEE_RESULT,
 }
@@ -44,6 +44,7 @@ const Round = ({
 
   useEffect(() => {
     getRoomV2(roomId).then((result) => {
+      if (!result) return;
       console.log('get room in round', roomId, result);
       setGameData(result);
     });
@@ -52,15 +53,9 @@ const Round = ({
   useEffect(() => {
     if (gameData && gameData.Address_1 === account) {
       setHashCode(gameData.Guess_1);
+      setRoundStatus(ROUND_STATUS_LIST.SEND_KEY);
     }
   }, [gameData]);
-
-  useEffect(() => {
-    // TODO check if last round
-    if (roundStatus === ROUND_STATUS_LIST.SEE_RESULT) {
-      setGameStatus(GAME_STATUS.FINISHED);
-    }
-  }, [roundStatus]);
 
   return (
     <>
@@ -92,6 +87,7 @@ const Round = ({
         secretKey={secretKey}
         hashCode={hashCode}
         gameData={gameData}
+        setGameStatus={setGameStatus}
       />
     </>
   );
