@@ -1,15 +1,30 @@
 /* This example requires Tailwind CSS v2.0+ */
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationIcon } from '@heroicons/react/outline';
+import { useContract } from '../../hooks/useContract';
 
 interface ModalProps {
   open: boolean;
   setOpen: any;
+  roomId: number;
 }
 
-export default function Withdraw({ open, setOpen }: ModalProps) {
+export default function Withdraw({ open, setOpen, roomId }: ModalProps) {
   const cancelButtonRef = useRef(null);
+
+  const { withdrawState, sendWithdraw } = useContract();
+
+  const withdraw = () => {
+    sendWithdraw(roomId);
+  };
+
+  useEffect(() => {
+    if (withdrawState.status === 'Success') {
+      console.log('withdrawed');
+      setOpen(false);
+    }
+  }, [withdrawState]);
 
   return (
     <Transition.Root show={open} as={Fragment} appear={true}>
@@ -78,7 +93,7 @@ export default function Withdraw({ open, setOpen }: ModalProps) {
                 <button
                   type="button"
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                  onClick={() => setOpen(false)}
+                  onClick={withdraw}
                 >
                   Rút tiền
                 </button>

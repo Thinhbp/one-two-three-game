@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { ROUND_STATUS_LIST } from '.';
+import { useContract } from '../../../hooks/useContract';
+import { utils } from 'ethers';
 
 interface StatusProps {
   currentRound: number;
@@ -9,6 +11,8 @@ interface StatusProps {
   setRoundStatus: any;
   selectedOption: number;
   secretKey: string;
+  hashCode: string;
+  roomId: number;
 }
 
 const Status = ({
@@ -18,8 +22,17 @@ const Status = ({
   setRoundStatus,
   selectedOption,
   secretKey,
+  hashCode,
+  roomId,
 }: StatusProps) => {
   const router = useRouter();
+
+  const {
+    selectGuessState,
+    sendSelectGuess,
+    sendInputSecret,
+    inputSecretState,
+  } = useContract();
 
   const submitOption = () => {
     if (selectedOption < 0) {
@@ -28,10 +41,17 @@ const Status = ({
 
     setRoundStatus(ROUND_STATUS_LIST.WAITING_CHOOSE_OPTION);
 
-    setTimeout(() => {
-      setRoundStatus(ROUND_STATUS_LIST.SEND_KEY);
-    }, 1000);
+    // TODO
+    sendSelectGuess(roomId, utils.formatBytes32String(hashCode), {
+      value: utils.parseEther('0.0001'),
+    });
   };
+
+  useEffect(() => {
+    if (selectGuessState.status === 'Success') {
+      setRoundStatus(ROUND_STATUS_LIST.SEND_KEY);
+    }
+  }, [selectGuessState]);
 
   const submitSecretKey = () => {
     if (secretKey.trim() === '') {
@@ -40,10 +60,14 @@ const Status = ({
 
     setRoundStatus(ROUND_STATUS_LIST.WAITING_RESULT);
 
-    setTimeout(() => {
-      setRoundStatus(ROUND_STATUS_LIST.SEE_RESULT);
-    }, 1000);
+    sendInputSecret(secretKey, roomId);
   };
+
+  useEffect(() => {
+    if (inputSecretState.status === 'Success') {
+      setRoundStatus(ROUND_STATUS_LIST.SEE_RESULT);
+    }
+  }, [inputSecretState]);
 
   return (
     <>

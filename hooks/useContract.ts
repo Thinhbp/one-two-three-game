@@ -9,41 +9,61 @@ import chainIds from '../chain-info/chainIds.json'
 export const useContract = () => {
 
     const { chainId } = useEthers()
-    const { abi } = GameContract
+    const abi = GameContract
     const network = chainId ? chainIds[chainId] : 'dev'
-    const contractAddress = chainId ? networksMapping[network]['CryptoZombies'] : constants.AddressZero
+    const contractAddress = chainId ? networksMapping[network]['GameContract'] : constants.AddressZero
     const contractInterface = new utils.Interface(abi)
     const contractInstance = new Contract(contractAddress, contractInterface)
 
-    const useGetZombie = (index: number) => {
-        const zombie = useContractCall({
+    const useGetRooms = () => {
+        const [result] = useContractCall({
             abi: contractInterface,
             address: contractAddress,
-            method: 'zombies',
-            args: [
-                index,
-            ]
-        }) ?? []
-        return zombie
-    }
-
-    const useGetZombiesByOwner = (owner: string | null | undefined) => {
-        const [zombies] = useContractCall({
-            abi: contractInterface,
-            address: contractAddress,
-            method: 'getZombiesByOwner',
-            args: [
-                owner,
-            ]
+            method: 'room_status',
+            args: []
         }) ?? [[]]
-        return zombies.map((z: any) => z.toNumber())
+        return result.map((r: any) => r.toNumber())
     }
 
-    const { send, state } = useContractFunction(contractInstance, 'createRandomZombie', {
-        transactionName: 'createRandomZombie',
+    const useGetRoom = async (index: number) => {
+        const result = useContractCall({
+            abi: contractInterface,
+            address: contractAddress,
+            method: 'arrRoom',
+            args: [index]
+        }) ?? []
+        return result
+    }
+
+    const getRoom = async (index: number) => {
+        return contractInstance.arrRoom(index)
+    }
+
+    const { send: sendSelectGuess, state: selectGuessState } = useContractFunction(contractInstance, 'select_guess', {
+        transactionName: 'select_guess',
+    })
+
+    const { send: sendInputSecret, state: inputSecretState } = useContractFunction(contractInstance, 'input_secret', {
+        transactionName: 'input_secret',
+    })
+
+    const { send: sendWithdraw, state: withdrawState } = useContractFunction(contractInstance, 'withdraw', {
+        transactionName: 'withdraw',
     })
 
     return {
+        useGetRooms,
+        useGetRoom,
+        getRoom,
+
+        sendSelectGuess,
+        selectGuessState,
+
+        sendInputSecret,
+        inputSecretState,
+
+        sendWithdraw,
+        withdrawState,
     }
 
 }

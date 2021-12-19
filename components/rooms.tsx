@@ -23,11 +23,11 @@ export default function Rooms({
     { name: 'Room' },
     { name: 'Coin' },
     { name: 'Amount' },
-    { name: 'Round' },
+    { name: 'Status' },
   ];
 
   const handleSelectRoom = (room: any) => {
-    router.push({ pathname: '/room', query: { id: room.id } });
+    router.push({ pathname: '/room', query: { id: room.Id } });
   };
 
   return (
@@ -86,26 +86,26 @@ export default function Rooms({
                 <tbody className="bg-white divide-y divide-gray-200">
                   {roomsData.map((room: any, index: number) => (
                     <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap">{room.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{index}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <a
                           href="#"
                           className="text-indigo-600 hover:text-indigo-900"
                           onClick={() => handleSelectRoom(room)}
                         >
-                          {room.room}
+                          Room {room.Id}
                         </a>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          {room.coin}
+                          ETH
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {room.amount}
+                        {room.Bet_amount}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {room.rounds}
+                        {room.Status}
                       </td>
                     </tr>
                   ))}

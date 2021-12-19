@@ -3,11 +3,13 @@ import { GAME_STATUS } from '..';
 import Header from './header';
 import Option from './option';
 import Status from './status';
+import { useContractV2 } from '../../../hooks/useContractV2';
 
 interface RoundProps {
   currentRound: number;
   setGameStatus: any;
   setCurrentRound: any;
+  roomId: number;
 }
 
 export enum ROUND_STATUS_LIST {
@@ -22,15 +24,26 @@ const Round = ({
   currentRound,
   setCurrentRound,
   setGameStatus,
+  roomId,
 }: RoundProps) => {
-  // TODO generate key
   const [secretKey, setSecretKey] = useState('');
+  const [hashCode, setHashCode] = useState('');
 
   const [selectedOption, setSelectedOption] = useState(-1);
 
   const [roundStatus, setRoundStatus] = useState(
     ROUND_STATUS_LIST.CHOOSE_OPTION
   );
+
+  const { getRoom: getRoomV2 } = useContractV2();
+
+  const [gameData, setGameData] = useState<any>();
+
+  useEffect(() => {
+    getRoomV2(roomId).then((result) => {
+      setGameData(result);
+    });
+  }, [roomId]);
 
   useEffect(() => {
     // TODO check if last round
@@ -41,7 +54,11 @@ const Round = ({
 
   return (
     <>
-      <Header currentRound={currentRound} roundStatus={roundStatus} />
+      <Header
+        currentRound={currentRound}
+        roundStatus={roundStatus}
+        roomId={roomId}
+      />
 
       <Option
         roundStatus={roundStatus}
@@ -50,6 +67,8 @@ const Round = ({
         setSecretKey={setSecretKey}
         selectedOption={selectedOption}
         setSelectedOption={setSelectedOption}
+        hashCode={hashCode}
+        setHashCode={setHashCode}
       />
 
       <Status
@@ -59,6 +78,7 @@ const Round = ({
         setRoundStatus={setRoundStatus}
         selectedOption={selectedOption}
         secretKey={secretKey}
+        hashCode={hashCode}
       />
     </>
   );

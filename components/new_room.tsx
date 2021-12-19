@@ -1,8 +1,10 @@
-import React, { Fragment, useRef, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useRouter } from 'next/router';
 import { useEthers, useEtherBalance } from '@usedapp/core';
 import { formatEther } from '@ethersproject/units';
+import { useContract } from '../hooks/useContract';
+import { utils } from 'ethers';
 interface ModalProps {
   open: boolean;
   setOpen: any;
@@ -11,11 +13,13 @@ interface ModalProps {
 export default function NewRoomModal({ open, setOpen }: ModalProps) {
   const router = useRouter();
 
-  const { account } = useEthers();
+  const { account, chainId } = useEthers();
   const etherBalance = useEtherBalance(account);
   const etherBalanceFormated = etherBalance
     ? parseFloat(formatEther(etherBalance))
     : 0;
+
+  const { useGetRooms, sendSelectGuess, selectGuessState } = useContract();
 
   const cancelButtonRef = useRef(null);
 
@@ -33,16 +37,35 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
     setAmount(event.target.value);
   };
 
-  const [rounds, setRounds] = useState('3');
-  const handleRoundsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRounds(event.target.value);
+  const [hashcode, setHashcode] = useState('');
+  const handleHashcodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.value.trim() === '') {
+      setSubmitBtnDisabled(true);
+    } else {
+      setSubmitBtnDisabled(false);
+    }
+    setHashcode(event.target.value);
   };
 
+  const rooms = useGetRooms();
+  let availableRoomId = 0;
+  if (rooms.length) {
+    availableRoomId = rooms.findIndex((r: any) => !r);
+  }
+
   const handleSubmit = () => {
-    // TODO send tx
-    console.log(rounds, amount);
-    router.push({ pathname: '/room', query: { id: 1 } });
+    // send tx
+    // console.log(availableRoomId, utils.formatBytes32String(hashcode), amount);
+    sendSelectGuess(availableRoomId, utils.formatBytes32String(hashcode), {
+      value: utils.parseEther(amount),
+    });
   };
+
+  useEffect(() => {
+    if (selectGuessState.status === 'Success') {
+      router.push({ pathname: '/room', query: { id: availableRoomId } });
+    }
+  }, [selectGuessState]);
 
   return (
     <Transition.Root show={open} as={Fragment} appear={true}>
@@ -138,15 +161,14 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
                             htmlFor="rounds"
                             className="block text-sm font-medium text-gray-700"
                           >
-                            Số vòng
+                            Hashcode
                           </label>
                           <input
-                            type="number"
-                            name="rounds"
-                            id="rounds"
-                            onChange={handleRoundsChange}
-                            value={rounds}
-                            min={1}
+                            type="text"
+                            name="hashcode"
+                            id="hashcode"
+                            onChange={handleHashcodeChange}
+                            value={hashcode}
                             className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                           />
                         </div>

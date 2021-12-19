@@ -8,6 +8,8 @@ interface OptionProps {
   setRoundStatus: any;
   secretKey: string;
   setSecretKey: any;
+  hashCode: string;
+  setHashCode: any;
   selectedOption: number;
   setSelectedOption: any;
 }
@@ -17,6 +19,8 @@ const Option = ({
   setRoundStatus,
   secretKey,
   setSecretKey,
+  hashCode,
+  setHashCode,
   selectedOption,
   setSelectedOption,
 }: OptionProps) => {
@@ -44,8 +48,39 @@ const Option = ({
     setSelectedOption(id);
   };
 
+  const handleHashCodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setHashCode(event.target.value);
+  };
+
   return (
     <>
+      {/* Hash code */}
+      <div className="mt-5 mx-20 md:mt-0 md:col-span-2">
+        <form action="#" method="POST">
+          <div className="px-4 py-5 bg-white sm:p-6">
+            <div className="grid grid-cols-6 gap-6">
+              <div className="col-span-6">
+                <label
+                  htmlFor="hashCode"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Hash code with guess
+                </label>
+                <input
+                  type="text"
+                  name="hashCode"
+                  id="hashCode"
+                  onChange={handleHashCodeChange}
+                  value={hashCode}
+                  disabled={roundStatus > ROUND_STATUS_LIST.SEND_KEY}
+                  className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                />
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
       {/* SECRET KEY */}
       <div className="mt-5 mx-20 md:mt-0 md:col-span-2">
         <form action="#" method="POST">
@@ -74,7 +109,7 @@ const Option = ({
       </div>
 
       {/* PLAYER OPTIONS */}
-      <div className="bg-white">
+      <div className="hidden bg-white">
         <div className="max-w-2xl mx-auto py-16 px-4 sm:py-12 sm:px-6 lg:max-w-7xl lg:px-8">
           <div className="mt-4 grid grid-cols-1 gap-y-8 gap-x-6 sm:grid-cols-3 lg:grid-cols-3 xl:gap-x-8">
             {playerOptions.map((option) => (

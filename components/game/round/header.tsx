@@ -5,10 +5,11 @@ import { ROUND_STATUS_LIST } from '.';
 
 interface HeaderProps {
   roundStatus: number;
+  roomId: number;
   currentRound: number;
 }
 
-const Header = ({ currentRound, roundStatus }: HeaderProps) => {
+const Header = ({ currentRound, roundStatus, roomId }: HeaderProps) => {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   const handleWithdraw = () => {
@@ -23,7 +24,7 @@ const Header = ({ currentRound, roundStatus }: HeaderProps) => {
           <header className="bg-white">
             <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
               <h1 className="text-2xl font-bold text-gray-900">
-                Round {currentRound}
+                Room {roomId}
               </h1>
             </div>
           </header>
@@ -44,6 +45,7 @@ const Header = ({ currentRound, roundStatus }: HeaderProps) => {
             </span>
             {showWithdrawModal && (
               <Withdraw
+                roomId={roomId}
                 open={showWithdrawModal}
                 setOpen={setShowWithdrawModal}
               />

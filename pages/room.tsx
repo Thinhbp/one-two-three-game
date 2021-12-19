@@ -8,11 +8,11 @@ const Room: NextPage = () => {
 
   const { id } = router.query;
 
-  // TODO get room data
+  const roomId = parseInt((id + '').replace('#', ''));
 
   return (
     <Page>
-      <Game roomId={id + ''} />
+      <Game roomId={roomId} />
     </Page>
   );
 };

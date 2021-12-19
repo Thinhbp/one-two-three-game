@@ -3,7 +3,7 @@ import Result from './result';
 import Round from './round';
 
 interface GameProps {
-  roomId: string;
+  roomId: number;
 }
 
 export enum GAME_STATUS {
@@ -20,6 +20,7 @@ const Game = ({ roomId }: GameProps) => {
     <>
       {status === GAME_STATUS.PLAYING && (
         <Round
+          roomId={roomId}
           currentRound={currentRound}
           setCurrentRound={setCurrentRound}
           setGameStatus={setStatus}
