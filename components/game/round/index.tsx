@@ -4,6 +4,7 @@ import Header from './header';
 import Option from './option';
 import Status from './status';
 import { useContractV2 } from '../../../hooks/useContractV2';
+import { useEthers } from '@usedapp/core';
 
 interface RoundProps {
   currentRound: number;
@@ -26,6 +27,8 @@ const Round = ({
   setGameStatus,
   roomId,
 }: RoundProps) => {
+  const { account } = useEthers();
+
   const [secretKey, setSecretKey] = useState('');
   const [hashCode, setHashCode] = useState('');
 
@@ -41,10 +44,16 @@ const Round = ({
 
   useEffect(() => {
     getRoomV2(roomId).then((result) => {
-      console.log(roomId, result);
+      console.log('get room in round', roomId, result);
       setGameData(result);
     });
   }, [roomId]);
+
+  useEffect(() => {
+    if (gameData && gameData.Address_1 === account) {
+      setHashCode(gameData.Guess_1);
+    }
+  }, [gameData]);
 
   useEffect(() => {
     // TODO check if last round

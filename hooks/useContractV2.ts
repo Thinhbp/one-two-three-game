@@ -6,7 +6,6 @@ import networksMapping from '../chain-info/networks.json'
 import chainIds from '../chain-info/chainIds.json'
 import Web3 from 'web3'
 
-
 export const useContractV2 = () => {
 
     const { chainId } = useEthers()
@@ -17,9 +16,11 @@ export const useContractV2 = () => {
     const contractInstance = new web3js.eth.Contract(abi, contractAddress)
 
     const getRoom = async (index: number) => {
-        console.log('get room', index)
         const data = await contractInstance.methods.arrRoom(index).call()
-        data['Id'] = index
+        data.Id = index
+        data.Guess_1 = utils.parseBytes32String(data.Guess_1)
+        data.Guess_2 = utils.parseBytes32String(data.Guess_2)
+        console.log('get room v2', index, data)
         return data
     }
 

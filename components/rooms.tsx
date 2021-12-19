@@ -2,16 +2,17 @@ import { PlusIcon } from '@heroicons/react/outline';
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import NewRoomModal from './new_room';
-
+import { useContract } from '../hooks/useContract';
+import { useContractV2 } from '../hooks/useContractV2';
 interface RoomsProps {
   header: string;
-  roomsData: any[];
+  type: number;
   showCreateNewRoomBtn?: boolean;
 }
 
 export default function Rooms({
   header,
-  roomsData,
+  type,
   showCreateNewRoomBtn,
 }: RoomsProps) {
   const router = useRouter();
@@ -25,6 +26,25 @@ export default function Rooms({
     { name: 'Amount' },
     { name: 'Status' },
   ];
+
+  const { useGetRooms, getRoom } = useContract();
+  const { getRoom: getRoomV2 } = useContractV2();
+
+  const rooms = useGetRooms();
+
+  const [roomsData, setRoomsData] = useState<any[]>([]);
+
+  rooms.forEach(async (status: any, index: number) => {
+    if (status) {
+      const room = await getRoomV2(index);
+      setRoomsData((arr: any[]) => {
+        if (arr.findIndex((v: any) => v.Id === room.Id) === -1) {
+          arr.push(room);
+        }
+        return arr;
+      });
+    }
+  });
 
   const handleSelectRoom = (room: any) => {
     router.push({ pathname: '/room', query: { id: room.Id } });

@@ -36,8 +36,6 @@ const Status = ({
     inputSecretState,
   } = useContract();
 
-  console.log(gameData);
-
   const submitOption = () => {
     if (selectedOption < 0) {
       return;
@@ -45,9 +43,8 @@ const Status = ({
 
     setRoundStatus(ROUND_STATUS_LIST.WAITING_CHOOSE_OPTION);
 
-    // TODO
     sendSelectGuess(roomId, utils.formatBytes32String(hashCode), {
-      value: utils.parseEther('0.0001'),
+      value: utils.parseEther(gameData.Bet_amount),
     });
   };
 
