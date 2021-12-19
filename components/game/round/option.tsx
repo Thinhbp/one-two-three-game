@@ -12,6 +12,7 @@ interface OptionProps {
   setHashCode: any;
   selectedOption: number;
   setSelectedOption: any;
+  gameData: any;
 }
 
 const Option = ({
@@ -23,6 +24,7 @@ const Option = ({
   setHashCode,
   selectedOption,
   setSelectedOption,
+  gameData,
 }: OptionProps) => {
   const handleSecretKeyChange = (
     event: React.ChangeEvent<HTMLInputElement>

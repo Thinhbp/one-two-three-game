@@ -13,6 +13,7 @@ interface StatusProps {
   secretKey: string;
   hashCode: string;
   roomId: number;
+  gameData: any;
 }
 
 const Status = ({
@@ -24,6 +25,7 @@ const Status = ({
   secretKey,
   hashCode,
   roomId,
+  gameData,
 }: StatusProps) => {
   const router = useRouter();
 

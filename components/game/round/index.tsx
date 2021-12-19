@@ -41,6 +41,7 @@ const Round = ({
 
   useEffect(() => {
     getRoomV2(roomId).then((result) => {
+      console.log(roomId, result);
       setGameData(result);
     });
   }, [roomId]);
@@ -69,9 +70,11 @@ const Round = ({
         setSelectedOption={setSelectedOption}
         hashCode={hashCode}
         setHashCode={setHashCode}
+        gameData={gameData}
       />
 
       <Status
+        roomId={roomId}
         currentRound={currentRound}
         setCurrentRound={setCurrentRound}
         roundStatus={roundStatus}
@@ -79,6 +82,7 @@ const Round = ({
         selectedOption={selectedOption}
         secretKey={secretKey}
         hashCode={hashCode}
+        gameData={gameData}
       />
     </>
   );
