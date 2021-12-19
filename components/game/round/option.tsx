@@ -66,7 +66,7 @@ const Option = ({
                   htmlFor="hashCode"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Hash code with guess
+                  Hash code with guess (bytes32 format)
                 </label>
                 <input
                   type="text"

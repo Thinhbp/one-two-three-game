@@ -19,15 +19,15 @@ const Result = ({ setPage, roomId }: ResultProps) => {
   useEffect(() => {
     getRoomV2(roomId).then((result) => {
       if (!result) return;
-      console.log('get room in result', roomId, result);
+      console.log('get room in result', roomId, result, account);
       setGameData(result);
 
       if (result.Result === '0') {
-        setStatus('Hòa');
+        setStatus('Hòa :|');
       } else if (result[`Address_${result.Result}`] === account) {
-        setStatus('Bạn đã thắng');
+        setStatus('Bạn đã thắng :)');
       } else {
-        setStatus('Bạn đã thua');
+        setStatus('Bạn đã thua :(');
       }
     });
   }, [roomId]);

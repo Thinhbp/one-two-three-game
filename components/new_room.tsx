@@ -29,7 +29,6 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
   const [amount, setAmount] = useState('0');
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(event.target.value);
-    console.log(value);
     if (value <= 0 || value > etherBalanceFormated) {
       setSubmitBtnDisabled(true);
     } else {
@@ -166,7 +165,7 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
                             htmlFor="rounds"
                             className="block text-sm font-medium text-gray-700"
                           >
-                            Hashcode
+                            Hash code with guess (bytes32 format)
                           </label>
                           <input
                             type="text"

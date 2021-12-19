@@ -39,6 +39,13 @@ const RoomsList = ({ setPage }: RoomsListProps) => {
         return arr;
       });
 
+      setBiggestBetRooms((arr: any[]) => {
+        if (arr.findIndex((v: any) => v.Id === room.Id) === -1) {
+          arr.push(room);
+        }
+        return arr;
+      });
+
       if (room.Address_1 === account || room.Address_2 === account) {
         setPlayedRooms((arr: any[]) => {
           if (arr.findIndex((v: any) => v.Id === room.Id) === -1) {

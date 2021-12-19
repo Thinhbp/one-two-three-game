@@ -13,8 +13,8 @@ const Home: NextPage = () => {
     <DAppProvider
       config={{
         notifications: {
-          expirationPeriod: 1000,
-          checkInterval: 1000,
+          expirationPeriod: 2000,
+          checkInterval: 500,
         },
       }}
     >
