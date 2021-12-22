@@ -2,7 +2,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationIcon } from '@heroicons/react/outline';
-import { useContract } from '../../hooks/useContract';
+import { useContract } from '@hooks/useContract';
 
 interface ModalProps {
   open: boolean;

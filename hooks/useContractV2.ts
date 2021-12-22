@@ -15,17 +15,30 @@ export const useContractV2 = () => {
     const web3js = new Web3(Web3.givenProvider)
     const contractInstance = new web3js.eth.Contract(abi, contractAddress)
 
+    const getRoomStatuses = async () => {
+        try {
+            const data = await contractInstance.methods.room_status().call()
+            console.log('get room statuses v2', data)
+            return data
+        } catch (e) {
+            return []
+        }
+    }
+
     const getRoom = async (index: number) => {
-        console.log('-> get room v2', index)
-        const data = await contractInstance.methods.arrRoom(index + '').call()
-        if (!data) return null
-        data.Id = index
-        console.log('get room v2', index, data)
-        return data
+        try {
+            const data = await contractInstance.methods.arrRoom(index + '').call()
+            data.Id = index
+            console.log('get room v2', index, data)
+            return data
+        } catch (e) {
+            return null
+        }
     }
 
     return {
-        getRoom
+        getRoomStatuses,
+        getRoom,
     }
 
 }

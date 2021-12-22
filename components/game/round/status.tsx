@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { ROUND_STATUS_LIST } from '.';
-import { useContract } from '../../../hooks/useContract';
 import { utils } from 'ethers';
+import { ROUND_STATUS_LIST } from '.';
 import { GAME_STATUS } from '..';
+import { sha256 } from '@hooks/utils';
+import { useContract } from '@hooks/useContract';
 
 interface StatusProps {
   currentRound: number;
@@ -12,7 +12,6 @@ interface StatusProps {
   setRoundStatus: any;
   selectedOption: number;
   secretKey: string;
-  hashCode: string;
   roomId: number;
   gameData: any;
   setGameStatus: any;
@@ -25,13 +24,10 @@ const Status = ({
   setRoundStatus,
   selectedOption,
   secretKey,
-  hashCode,
   roomId,
   gameData,
   setGameStatus,
 }: StatusProps) => {
-  const router = useRouter();
-
   const {
     selectGuessState,
     sendSelectGuess,
@@ -41,10 +37,13 @@ const Status = ({
 
   const submitOption = () => {
     if (!gameData) return;
-    console.log('submit option', roomId, hashCode, gameData.Bet_amount);
+    const str = secretKey + selectedOption;
+    const hashCode = sha256(str);
+
+    console.log('submit option', roomId, str, hashCode, gameData.Bet_amount);
 
     sendSelectGuess(roomId, hashCode, {
-      value: utils.parseEther(gameData.Bet_amount / 10 ** 18 + ''),
+      value: utils.parseEther(parseInt(gameData.Bet_amount) / 10 ** 18 + ''),
     });
     setRoundStatus(ROUND_STATUS_LIST.WAITING_CHOOSE_OPTION);
   };
@@ -80,13 +79,12 @@ const Status = ({
     <>
       <div className="text-center">
         {roundStatus === ROUND_STATUS_LIST.CHOOSE_OPTION && (
-          <a
-            href="#"
+          <button
             className="ml-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             onClick={submitOption}
           >
             Submit your option
-          </a>
+          </button>
         )}
 
         {roundStatus === ROUND_STATUS_LIST.WAITING_CHOOSE_OPTION && (
@@ -94,13 +92,12 @@ const Status = ({
         )}
 
         {roundStatus === ROUND_STATUS_LIST.SEND_KEY && (
-          <a
-            href="#"
+          <button
             className="ml-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             onClick={submitSecretKey}
           >
             Gửi key để giải mã
-          </a>
+          </button>
         )}
 
         {roundStatus === ROUND_STATUS_LIST.WAITING_SEND_KEY && (

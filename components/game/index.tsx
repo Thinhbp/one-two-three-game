@@ -3,8 +3,7 @@ import Result from './result';
 import Round from './round';
 
 interface GameProps {
-  setPage: any;
-  page: any;
+  roomId: number;
 }
 
 export enum GAME_STATUS {
@@ -12,10 +11,8 @@ export enum GAME_STATUS {
   FINISHED,
 }
 
-const Game = ({ page, setPage }: GameProps) => {
+const Game = ({ roomId }: GameProps) => {
   const [currentRound, setCurrentRound] = useState(1);
-
-  const { roomId } = page;
 
   const [status, setStatus] = useState(GAME_STATUS.PLAYING);
 
@@ -30,9 +27,7 @@ const Game = ({ page, setPage }: GameProps) => {
         />
       )}
 
-      {status === GAME_STATUS.FINISHED && (
-        <Result roomId={roomId} setPage={setPage} />
-      )}
+      {status === GAME_STATUS.FINISHED && <Result roomId={roomId} />}
     </>
   );
 };

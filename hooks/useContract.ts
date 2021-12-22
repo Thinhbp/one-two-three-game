@@ -14,6 +14,7 @@ export const useContract = () => {
     const contractAddress = chainId ? networksMapping[network]['GameContract'] : constants.AddressZero
     const contractInterface = new utils.Interface(abi)
     const contractInstance = new Contract(contractAddress, contractInterface)
+    // console.log('contract init', contractAddress)
 
     const useGetRooms = () => {
         const [result] = useContractCall({
@@ -22,7 +23,9 @@ export const useContract = () => {
             method: 'room_status',
             args: []
         }) ?? [[]]
-        return result.map((r: any) => r.toNumber())
+        const rooms = result.map((r: any) => r.toNumber())
+        console.log('get rooms status', rooms)
+        return rooms
     }
 
     const useGetRoom = async (index: number) => {

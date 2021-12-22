@@ -1,25 +1,28 @@
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { useRouter } from 'next/router';
 import { useEthers, useEtherBalance } from '@usedapp/core';
-import { formatEther } from '@ethersproject/units';
-import { useContract } from '../hooks/useContract';
 import { utils } from 'ethers';
+import { formatEther } from '@ethersproject/units';
+import { useContract } from '@hooks/useContract';
+import { useContractV2 } from '@hooks/useContractV2';
+import { ROUND_STATUS_LIST } from '../game/round';
+import Option from '../game/round/option';
+import { sha256 } from '@hooks/utils';
+
 interface ModalProps {
   open: boolean;
   setOpen: any;
 }
 
 export default function NewRoomModal({ open, setOpen }: ModalProps) {
-  const router = useRouter();
-
-  const { account, chainId } = useEthers();
+  const { account } = useEthers();
   const etherBalance = useEtherBalance(account);
-  const etherBalanceFormated = etherBalance
+  const etherBalanceFormatted = etherBalance
     ? parseFloat(formatEther(etherBalance))
     : 0;
 
   const { useGetRooms, sendSelectGuess, selectGuessState } = useContract();
+  const { getRoomStatuses } = useContractV2();
 
   const cancelButtonRef = useRef(null);
 
@@ -29,7 +32,7 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
   const [amount, setAmount] = useState('0');
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(event.target.value);
-    if (value <= 0 || value > etherBalanceFormated) {
+    if (value <= 0 || value > etherBalanceFormatted) {
       setSubmitBtnDisabled(true);
     } else {
       setSubmitBtnDisabled(false);
@@ -37,33 +40,37 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
     setAmount(event.target.value);
   };
 
-  const [hashcode, setHashcode] = useState('');
-  const handleHashcodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.value.trim() === '') {
-      setSubmitBtnDisabled(true);
-    } else {
-      setSubmitBtnDisabled(false);
-    }
-    setHashcode(event.target.value);
-  };
+  const [secretKey, setSecretKey] = useState('');
+  const [selectedOption, setSelectedOption] = useState(-1);
+  const [roundStatus, setRoundStatus] = useState(
+    ROUND_STATUS_LIST.CHOOSE_OPTION
+  );
 
-  const rooms = useGetRooms();
-  let availableRoomId = 0;
-  if (rooms.length) {
-    availableRoomId = rooms.findIndex((r: any) => !r);
-  }
+  const [availableRoomId, setAvailableRoomId] = useState(-1);
+
+  useEffect(() => {
+    (async () => {
+      const roomStatuses = await getRoomStatuses();
+      setAvailableRoomId(roomStatuses.findIndex((s: any) => s === '0'));
+    })();
+  }, []);
 
   const handleSubmit = () => {
-    // send tx
-    console.log('submit room', availableRoomId, hashcode, amount);
-    sendSelectGuess(availableRoomId, hashcode, {
+    if (availableRoomId < 0) {
+      alert('Cannot find available room!');
+    }
+    const str = secretKey + selectedOption;
+    const hashCode = sha256(str);
+
+    console.log('submit option', availableRoomId, str, hashCode, amount);
+
+    sendSelectGuess(availableRoomId, hashCode, {
       value: utils.parseEther(amount),
     });
   };
 
   useEffect(() => {
     if (selectGuessState.status === 'Success') {
-      // router.push({ pathname: '/room', query: { id: availableRoomId } });
       setOpen(false);
     } else if (selectGuessState.status === 'Mining') {
       setSubmitBtnText('Đang tạo phòng...');
@@ -76,7 +83,7 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
       <Dialog
         as="div"
         className="fixed z-10 inset-0 overflow-y-auto"
-        initialFocus={cancelButtonRef}
+        // initialFocus={cancelButtonRef}
         onClose={setOpen}
       >
         <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -156,31 +163,21 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
                             className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                           />
                           <div className="block text-sm font-medium text-gray-700">
-                            Max: {etherBalanceFormated} ETH
+                            Max: {etherBalanceFormatted} ETH
                           </div>
-                        </div>
-
-                        <div className="col-span-6">
-                          <label
-                            htmlFor="rounds"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Hash code with guess (bytes32 format)
-                          </label>
-                          <input
-                            type="text"
-                            name="hashcode"
-                            id="hashcode"
-                            onChange={handleHashcodeChange}
-                            value={hashcode}
-                            className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                          />
                         </div>
                       </div>
                     </div>
                   </form>
                 </div>
               </div>
+              <Option
+                roundStatus={roundStatus}
+                secretKey={secretKey}
+                setSecretKey={setSecretKey}
+                selectedOption={selectedOption}
+                setSelectedOption={setSelectedOption}
+              />
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button
                   type="button"

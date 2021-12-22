@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useEthers } from '@usedapp/core';
 import Header from './header';
 import Option from './option';
 import Status from './status';
-import { useContractV2 } from '../../../hooks/useContractV2';
-import { useEthers } from '@usedapp/core';
+import { useContractV2 } from '@hooks/useContractV2';
 
 interface RoundProps {
   currentRound: number;
@@ -30,7 +30,6 @@ const Round = ({
   const { account } = useEthers();
 
   const [secretKey, setSecretKey] = useState('');
-  const [hashCode, setHashCode] = useState('');
 
   const [selectedOption, setSelectedOption] = useState(-1);
 
@@ -52,7 +51,6 @@ const Round = ({
 
   useEffect(() => {
     if (gameData && gameData.Address_1 === account) {
-      setHashCode(gameData.Guess_1);
       setRoundStatus(ROUND_STATUS_LIST.SEND_KEY);
     }
   }, [gameData]);
@@ -67,14 +65,10 @@ const Round = ({
 
       <Option
         roundStatus={roundStatus}
-        setRoundStatus={setRoundStatus}
         secretKey={secretKey}
         setSecretKey={setSecretKey}
         selectedOption={selectedOption}
         setSelectedOption={setSelectedOption}
-        hashCode={hashCode}
-        setHashCode={setHashCode}
-        gameData={gameData}
       />
 
       <Status
@@ -85,7 +79,6 @@ const Round = ({
         setRoundStatus={setRoundStatus}
         selectedOption={selectedOption}
         secretKey={secretKey}
-        hashCode={hashCode}
         gameData={gameData}
         setGameStatus={setGameStatus}
       />

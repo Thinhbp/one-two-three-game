@@ -1,26 +1,26 @@
 import { PlusIcon } from '@heroicons/react/outline';
-import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
-import NewRoomModal from './new_room';
-import { showAddress } from '../hooks/utils';
 import Web3 from 'web3';
+import NewRoomModal from './new';
+import { showAddress } from '@hooks/utils';
+import { usePageContext, ACTIONS, PAGES } from '@components/common/page';
 
-interface RoomsProps {
+interface TableProps {
   header: string;
   roomsData: any[];
   showCreateNewRoomBtn?: boolean;
-  setPage: any;
+  showNewRoomModal?: boolean;
+  setNewRoomModal?: any;
 }
 
-export default function Rooms({
+export default function Table({
   header,
   roomsData,
-  setPage,
   showCreateNewRoomBtn,
-}: RoomsProps) {
-  const router = useRouter();
-
-  const [showNewRoomModal, setNewRoomModal] = useState(false);
+  showNewRoomModal,
+  setNewRoomModal,
+}: TableProps) {
+  const [state, dispatch] = usePageContext();
 
   const columns = [
     { name: '#' },
@@ -32,7 +32,10 @@ export default function Rooms({
   ];
 
   const handleSelectRoom = (room: any) => {
-    setPage({ id: 1, roomId: room.Id });
+    dispatch({
+      type: ACTIONS.SET_PAGE,
+      payload: { page: PAGES.ROOM, id: room.Id },
+    });
   };
 
   return (
@@ -95,13 +98,12 @@ export default function Rooms({
                         {index + 1}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <a
-                          href="#"
-                          className="text-indigo-600 hover:text-indigo-900"
+                        <div
+                          className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                           onClick={() => handleSelectRoom(room)}
                         >
                           Room {room.Id}
-                        </a>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {showAddress(room.Address_1)}
