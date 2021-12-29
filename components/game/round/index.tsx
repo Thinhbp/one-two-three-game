@@ -50,7 +50,10 @@ const Round = ({
   }, [roomId]);
 
   useEffect(() => {
-    if (gameData && gameData.Address_1 === account) {
+    if (
+      gameData &&
+      (gameData.Address_1 === account || gameData.Address_2 === account)
+    ) {
       setRoundStatus(ROUND_STATUS_LIST.SEND_KEY);
     }
   }, [gameData]);
