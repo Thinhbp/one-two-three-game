@@ -16,38 +16,44 @@ export const useContract = () => {
     const contractInstance = new Contract(contractAddress, contractInterface)
     // console.log('contract init', contractAddress)
 
-    const useGetRooms = () => {
+    const useGetOpeningRooms = () => {
         const [result] = useContractCall({
             abi: contractInterface,
             address: contractAddress,
-            method: 'room_status',
+            method: 'getOpeningRooms',
             args: []
         }) ?? [[]]
-        const rooms = result.map((r: any) => r.toNumber())
-        console.log('get rooms status', rooms)
+        const rooms = result
+        console.log('getOpeningRooms', rooms)
         return rooms
     }
 
-    const useGetRoom = async (index: number) => {
-        const result = useContractCall({
+    const useGetPlayerRooms = (address: string) => {
+        const [result] = useContractCall({
             abi: contractInterface,
             address: contractAddress,
-            method: 'arrRoom',
-            args: [index]
-        }) ?? []
-        return result
+            method: 'getPlayerRooms',
+            args: [address]
+        }) ?? [[]]
+        const rooms = result
+        console.log('getPlayerRooms', rooms)
+        return rooms
     }
 
     const getRoom = async (index: number) => {
-        return contractInstance.arrRoom(index)
+        return contractInstance.rooms(index)
     }
 
-    const { send: sendSelectGuess, state: selectGuessState } = useContractFunction(contractInstance, 'select_guess', {
-        transactionName: 'select_guess',
+    const { send: createRoom, state: createRoomState } = useContractFunction(contractInstance, 'createRoom', {
+        transactionName: 'createRoom',
     })
 
-    const { send: sendInputSecret, state: inputSecretState } = useContractFunction(contractInstance, 'input_secret', {
-        transactionName: 'input_secret',
+    const { send: sendHashcode, state: sendHashcodeState } = useContractFunction(contractInstance, 'sendHashcode', {
+        transactionName: 'sendHashcode',
+    })
+
+    const { send: sendSecret, state: sendSecretState } = useContractFunction(contractInstance, 'sendSecret', {
+        transactionName: 'sendSecret',
     })
 
     const { send: sendWithdraw, state: withdrawState } = useContractFunction(contractInstance, 'withdraw', {
@@ -55,15 +61,18 @@ export const useContract = () => {
     })
 
     return {
-        useGetRooms,
-        useGetRoom,
         getRoom,
+        useGetOpeningRooms,
+        useGetPlayerRooms,
 
-        sendSelectGuess,
-        selectGuessState,
+        createRoom,
+        createRoomState,
 
-        sendInputSecret,
-        inputSecretState,
+        sendHashcode,
+        sendHashcodeState,
+
+        sendSecret,
+        sendSecretState,
 
         sendWithdraw,
         withdrawState,

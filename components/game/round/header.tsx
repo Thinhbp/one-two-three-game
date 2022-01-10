@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { LogoutIcon } from '@heroicons/react/outline';
-import Withdraw from '../withdraw_modal';
-import { ROUND_STATUS_LIST } from '.';
+import Withdraw from './withdraw_modal';
+import { ROUND_STATUS_LIST } from '@hooks/consts';
 
 interface HeaderProps {
   roundStatus: number;
   roomId: number;
-  currentRound: number;
 }
 
-const Header = ({ currentRound, roundStatus, roomId }: HeaderProps) => {
+const Header = ({ roundStatus, roomId }: HeaderProps) => {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   const handleWithdraw = () => {
@@ -40,7 +39,7 @@ const Header = ({ currentRound, roundStatus, roomId }: HeaderProps) => {
                   className="-ml-1 mr-2 h-5 w-5 text-gray-500"
                   aria-hidden="true"
                 />
-                Rút tiền
+                Withdraw
               </button>
             </span>
             {showWithdrawModal && (

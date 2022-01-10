@@ -3,6 +3,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ExclamationIcon } from '@heroicons/react/outline';
 import { useContract } from '@hooks/useContract';
+import { usePageContext, ACTIONS, PAGES } from '@components/common/page';
 
 interface ModalProps {
   open: boolean;
@@ -11,16 +12,18 @@ interface ModalProps {
 }
 
 export default function Withdraw({ open, setOpen, roomId }: ModalProps) {
+  const [state, dispatch] = usePageContext();
+
   const cancelButtonRef = useRef(null);
 
   const { withdrawState, sendWithdraw } = useContract();
 
-  const [withdrawBtnText, setWithdrawBtnText] = useState('Rút tiền');
+  const [withdrawBtnText, setWithdrawBtnText] = useState('Withdraw');
   const [withdrawBtnDisabled, setWithdrawBtnDisabled] = useState(false);
 
   const withdraw = () => {
     sendWithdraw(roomId);
-    setWithdrawBtnText('Đang rút tiền...');
+    setWithdrawBtnText('Withdrawing...');
     setWithdrawBtnDisabled(true);
   };
 
@@ -28,9 +31,10 @@ export default function Withdraw({ open, setOpen, roomId }: ModalProps) {
     if (withdrawState.status === 'Success') {
       console.log('withdrawed');
       setOpen(false);
+      dispatch({ type: ACTIONS.SET_PAGE, payload: { page: PAGES.HOME } });
     } else if (withdrawState.status === 'Exception') {
       alert(withdrawState.errorMessage);
-      setWithdrawBtnText('Rút tiền');
+      setWithdrawBtnText('Withdraw');
       setWithdrawBtnDisabled(false);
     }
   }, [withdrawState]);
@@ -86,11 +90,11 @@ export default function Withdraw({ open, setOpen, roomId }: ModalProps) {
                       as="h3"
                       className="text-lg leading-6 font-medium text-gray-900"
                     >
-                      Rút tiền
+                      Withdraw
                     </Dialog.Title>
                     <div className="mt-2">
                       <p className="text-sm text-gray-500">
-                        Rút tiền đã đặt và thoát khỏi phòng?
+                        Withdraw your money and exit this room?
                       </p>
                     </div>
                   </div>
@@ -111,7 +115,7 @@ export default function Withdraw({ open, setOpen, roomId }: ModalProps) {
                   onClick={() => setOpen(false)}
                   ref={cancelButtonRef}
                 >
-                  Hủy
+                  Cancel
                 </button>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import gameStyles from '@styles/Game.module.css';
-import { ROUND_STATUS_LIST } from '.';
+import { PLAYER_OPTIONS, ROUND_STATUS_LIST } from '@hooks/consts';
 
 interface OptionProps {
   roundStatus: number;
@@ -24,20 +24,6 @@ const Option = ({
     setSecretKey(event.target.value);
   };
 
-  const playerOptions = [
-    {
-      id: 0,
-      imageSrc: '/img/keo.webp',
-    },
-    {
-      id: 1,
-      imageSrc: '/img/bua.png',
-    },
-    {
-      id: 2,
-      imageSrc: '/img/bao.webp',
-    },
-  ];
   const handleSelectOption = (id: number) => {
     setSelectedOption(id);
   };
@@ -76,7 +62,7 @@ const Option = ({
         <div className="bg-white">
           <div className="max-w-xl mx-auto py-6 px-4 sm:py-4 sm:px-6 lg:max-w-2xl lg:px-8">
             <div className="grid grid-cols-1 gap-y-8 gap-x-6 sm:grid-cols-3 lg:grid-cols-3 xl:gap-x-8">
-              {playerOptions.map((option) => (
+              {PLAYER_OPTIONS.map((option) => (
                 <div
                   key={option.id}
                   className={`group relative ${

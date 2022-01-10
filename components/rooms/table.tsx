@@ -4,6 +4,7 @@ import Web3 from 'web3';
 import NewRoomModal from './new';
 import { showAddress } from '@hooks/utils';
 import { usePageContext, ACTIONS, PAGES } from '@components/common/page';
+import { ROOM_STATUS } from '@hooks/consts';
 
 interface TableProps {
   header: string;
@@ -32,9 +33,13 @@ export default function Table({
   ];
 
   const handleSelectRoom = (room: any) => {
+    if (room.status === ROOM_STATUS.EMPTY) {
+      alert('This room has been closed!');
+      return;
+    }
     dispatch({
       type: ACTIONS.SET_PAGE,
-      payload: { page: PAGES.ROOM, id: room.Id },
+      payload: { page: PAGES.ROOM, id: room.id },
     });
   };
 
@@ -63,7 +68,7 @@ export default function Table({
                     className="-ml-1 mr-2 h-5 w-5 text-gray-500"
                     aria-hidden="true"
                   />
-                  Tạo phòng
+                  Create room
                 </button>
               </span>
             </div>
@@ -102,7 +107,7 @@ export default function Table({
                           className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                           onClick={() => handleSelectRoom(room)}
                         >
-                          Room {room.Id}
+                          Room {room.id}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -117,9 +122,13 @@ export default function Table({
                         {Web3.utils.fromWei(room.Bet_amount, 'ether')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {room.Status === '0' && 'Empty'}
-                        {room.Status === '1' && '1 player'}
-                        {room.Status === '2' && '2 players'}
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                          {room.status === ROOM_STATUS.EMPTY && 'Empty'}
+                          {room.status === ROOM_STATUS.ONE_PLAYER && '1 player'}
+                          {room.status === ROOM_STATUS.TWO_PLAYERS &&
+                            '2 players'}
+                          {room.status === ROOM_STATUS.CLOSED && 'Closed'}
+                        </span>
                       </td>
                     </tr>
                   ))}
