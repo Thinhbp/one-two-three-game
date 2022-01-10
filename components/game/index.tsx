@@ -12,19 +12,12 @@ export enum GAME_STATUS {
 }
 
 const Game = ({ roomId }: GameProps) => {
-  const [currentRound, setCurrentRound] = useState(1);
-
   const [status, setStatus] = useState(GAME_STATUS.PLAYING);
 
   return (
     <>
       {status === GAME_STATUS.PLAYING && (
-        <Round
-          roomId={roomId}
-          currentRound={currentRound}
-          setCurrentRound={setCurrentRound}
-          setGameStatus={setStatus}
-        />
+        <Round roomId={roomId} setGameStatus={setStatus} />
       )}
 
       {status === GAME_STATUS.FINISHED && <Result roomId={roomId} />}

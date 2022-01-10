@@ -16,4 +16,4 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 https://one-two-three-game.vercel.app/
 
 Testnet Contract Address:
-- Rinkeby: 0xA1dfEf225A2D4BAb4D14b828FC426e802f078798
+- Rinkeby: 0x98f0698C1F12D02A2Eb7a79364B11aEa2e7486ea

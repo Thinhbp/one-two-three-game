@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useEthers } from '@usedapp/core';
 import { useContract } from '@hooks/useContract';
 import { useContractV2 } from '@hooks/useContractV2';
@@ -6,78 +6,58 @@ import Table from './table';
 
 const Rooms = () => {
   const { account } = useEthers();
-  const { getRoomStatuses, getRoom } = useContractV2();
+  const { getOpeningRooms, getPlayerRooms } = useContractV2();
 
   const [showNewRoomModal, setNewRoomModal] = useState(false);
 
-  const [availableRooms, setAvailableRooms] = useState<any[]>([]);
+  const [openingRooms, setOpeningRooms] = useState<any[]>([]);
   const [playedRooms, setPlayedRooms] = useState<any[]>([]);
   const [biggestBetRooms, setBiggestBetRooms] = useState<any[]>([]);
 
+  const loadDataInterval = useRef<any>();
+  const loadDataIntervalTime = 5000;
+
   const loadData = async () => {
-    const roomStatuses = await getRoomStatuses();
+    const rooms = await getOpeningRooms();
+    rooms.sort((a: any, b: any) => (a.id < b.id ? 1 : -1));
+    setOpeningRooms(rooms);
 
-    for (let i = 0; i < roomStatuses.length; i++) {
-      const status = roomStatuses[i];
-      if (status !== '0') {
-        const room = await getRoom(i);
+    let _bbRooms = [...rooms];
+    _bbRooms.sort((a: any, b: any) => (a.Bet_amount < b.Bet_amount ? 1 : -1));
+    setBiggestBetRooms(_bbRooms);
 
-        setAvailableRooms((arr: any[]) => {
-          if (!arr.find((r: any) => r.Id === room.Id)) {
-            return [...arr, room];
-          }
-          return arr;
-        });
-
-        if (account === room.Address_1 || account === room.Address_2) {
-          setPlayedRooms((arr: any[]) => {
-            if (!arr.find((r: any) => r.Id === room.Id)) {
-              return [...arr, room];
-            }
-            return arr;
-          });
-        }
-
-        setBiggestBetRooms((arr: any[]) => {
-          if (!arr.find((r: any) => r.Id === room.Id)) {
-            return [...arr, room];
-          }
-          return arr;
-        });
-      }
+    if (account) {
+      let _playedRooms = await getPlayerRooms(account);
+      _playedRooms.sort((a: any, b: any) => (a.id < b.id ? 1 : -1));
+      setPlayedRooms(_playedRooms);
     }
   };
 
   const cleanUpRooms = () => {
-    setAvailableRooms([]);
+    clearInterval(loadDataInterval.current);
+    setOpeningRooms([]);
     setPlayedRooms([]);
     setBiggestBetRooms([]);
   };
 
   useEffect(() => {
     loadData();
+    loadDataInterval.current = setInterval(loadData, loadDataIntervalTime);
 
     return cleanUpRooms;
   }, [account]);
 
-  useEffect(() => {
-    if (!showNewRoomModal) {
-      loadData();
-      return cleanUpRooms;
-    }
-  }, [showNewRoomModal]);
-
   return (
     <>
       <Table
-        header="Danh sách phòng"
-        roomsData={availableRooms}
+        header="Opening Rooms"
+        roomsData={openingRooms}
         showCreateNewRoomBtn
         showNewRoomModal={showNewRoomModal}
         setNewRoomModal={setNewRoomModal}
       />
-      <Table header="Danh sách phòng đã chơi" roomsData={playedRooms} />
-      <Table header="Danh sách cược lớn nhất" roomsData={biggestBetRooms} />
+      <Table header="My Rooms" roomsData={playedRooms} />
+      <Table header="Biggest Bet Rooms" roomsData={biggestBetRooms} />
     </>
   );
 };

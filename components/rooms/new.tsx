@@ -4,10 +4,6 @@ import { useEthers, useEtherBalance } from '@usedapp/core';
 import { utils } from 'ethers';
 import { formatEther } from '@ethersproject/units';
 import { useContract } from '@hooks/useContract';
-import { useContractV2 } from '@hooks/useContractV2';
-import { ROUND_STATUS_LIST } from '../game/round';
-import Option from '../game/round/option';
-import { sha256 } from '@hooks/utils';
 
 interface ModalProps {
   open: boolean;
@@ -21,13 +17,12 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
     ? parseFloat(formatEther(etherBalance))
     : 0;
 
-  const { useGetRooms, sendSelectGuess, selectGuessState } = useContract();
-  const { getRoomStatuses } = useContractV2();
+  const { createRoom, createRoomState } = useContract();
 
   const cancelButtonRef = useRef(null);
 
   const [submitBtnDisabled, setSubmitBtnDisabled] = useState(true);
-  const [submitBtnText, setSubmitBtnText] = useState('Tạo phòng');
+  const [submitBtnText, setSubmitBtnText] = useState('Create Room');
 
   const [amount, setAmount] = useState('0');
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,43 +35,20 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
     setAmount(event.target.value);
   };
 
-  const [secretKey, setSecretKey] = useState('');
-  const [selectedOption, setSelectedOption] = useState(-1);
-  const [roundStatus, setRoundStatus] = useState(
-    ROUND_STATUS_LIST.CHOOSE_OPTION
-  );
-
-  const [availableRoomId, setAvailableRoomId] = useState(-1);
-
-  useEffect(() => {
-    (async () => {
-      const roomStatuses = await getRoomStatuses();
-      setAvailableRoomId(roomStatuses.findIndex((s: any) => s === '0'));
-    })();
-  }, []);
-
   const handleSubmit = () => {
-    if (availableRoomId < 0) {
-      alert('Cannot find available room!');
-    }
-    const str = secretKey + selectedOption;
-    const hashCode = sha256(str);
-
-    console.log('submit option', availableRoomId, str, hashCode, amount);
-
-    sendSelectGuess(availableRoomId, hashCode, {
+    createRoom({
       value: utils.parseEther(amount),
     });
   };
 
   useEffect(() => {
-    if (selectGuessState.status === 'Success') {
+    if (createRoomState.status === 'Success') {
       setOpen(false);
-    } else if (selectGuessState.status === 'Mining') {
-      setSubmitBtnText('Đang tạo phòng...');
+    } else if (createRoomState.status === 'Mining') {
+      setSubmitBtnText('Creating...');
       setSubmitBtnDisabled(true);
     }
-  }, [selectGuessState]);
+  }, [createRoomState]);
 
   return (
     <Transition.Root show={open} as={Fragment} appear={true}>
@@ -121,7 +93,7 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
                   <header className="bg-white">
                     <div className="max-w-7xl mx-auto">
                       <h1 className="text-xl font-bold text-gray-900">
-                        Tạo phòng mới
+                        Create new room
                       </h1>
                     </div>
                   </header>
@@ -135,7 +107,7 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
                             htmlFor="coin"
                             className="block text-sm font-medium text-gray-700"
                           >
-                            Loại Coin
+                            Coin
                           </label>
                           <select
                             id="coin"
@@ -151,7 +123,7 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
                             htmlFor="amount"
                             className="block text-sm font-medium text-gray-700"
                           >
-                            Số tiền cược
+                            Bet amount
                           </label>
                           <input
                             type="number"
@@ -171,13 +143,6 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
                   </form>
                 </div>
               </div>
-              <Option
-                roundStatus={roundStatus}
-                secretKey={secretKey}
-                setSecretKey={setSecretKey}
-                selectedOption={selectedOption}
-                setSelectedOption={setSelectedOption}
-              />
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button
                   type="button"
@@ -193,7 +158,7 @@ export default function NewRoomModal({ open, setOpen }: ModalProps) {
                   onClick={() => setOpen(false)}
                   ref={cancelButtonRef}
                 >
-                  Hủy
+                  Cancel
                 </button>
               </div>
             </div>
