@@ -99,8 +99,8 @@ contract OneTwoThree {
     // Send bet amount to create a room
     function createRoom() public payable {
         require(
-            ownerCount[msg.sender] == 0,
-            "You are already a owner of other room."
+            ownerCount[msg.sender] <=10,
+            "You have already reached to limit."
         );
         require(msg.value > 0, "bet amount must greater than 0");
 
