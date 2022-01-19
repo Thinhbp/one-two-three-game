@@ -1,20 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-interface IERC20 {
-    function balanceOf(address account) external view returns (uint);
-    function transfer(address recipient, uint amount) external returns (bool);
-    function allowance(address owner, address spender) external view returns (uint);
-    function approve(address spender, uint amount) external returns (bool);
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint amount
-    ) external returns (bool);
-}
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract OneTwoThree {
-
+contract GameContract {
     uint256 constant SCISSORS = 1;
     uint256 constant ROCK = 2;
     uint256 constant PAPER = 3;
@@ -34,9 +23,9 @@ contract OneTwoThree {
     }
 
     struct Room {
-        address Address_1;
-        address Address_2;
-        uint Bet_amount;
+        address address_1;
+        address address_2;
+        uint256 betAmount;
         ROOM_STATUS status;
         RESULT_TYPE result;
         //Token will be used in the room
@@ -54,16 +43,17 @@ contract OneTwoThree {
     }
 
     struct Currency {
-        address Address_token;
+        address addressToken;
         string symbol;
     }
 
-    mapping(string => address) list_token;
+    uint256 public feeRatePercentage;
+
+    mapping(string => address) listToken;
 
     // Array include list of token using in game
     Currency[] public arrCurrency;
 
- 
     Room[] public rooms;
 
     // Keep track of opened room number
@@ -78,9 +68,6 @@ contract OneTwoThree {
 
     // Check number of rooms a player has joined
     mapping(address => uint256) public playerRoomsCount;
-    
-
-    
 
     event CreateRoom(Room _room);
     event JoinRoom(Room _room);
@@ -89,27 +76,29 @@ contract OneTwoThree {
 
     address owner;
 
-    constructor() {
+    constructor(uint256 _feeRatePercentage) {
         owner = msg.sender;
+        feeRatePercentage = _feeRatePercentage;
     }
 
     //Check balance of contract corresponding to each token
     function balance(string memory _token) public view returns (uint256) {
-        if (sha256(bytes(_token)) == sha256(bytes("ETH"))) {
+        if (sha256(bytes(_token)) == sha256(bytes(""))) {
             return address(this).balance;
-        }else {
-            return IERC20(list_token[_token]).balanceOf(address(this));
+        } else {
+            return IERC20(listToken[_token]).balanceOf(address(this));
         }
     }
-    
+
     //Add token in game
-    function addCurrency(address _address_token, string memory _symbol) public  {
+    function addCurrency(address _addressToken, string memory _symbol) public {
         require(msg.sender == owner, "You are not allowed");
-        Currency memory curr;
-        curr.Address_token = _address_token;
-        curr.symbol = _symbol;
-        arrCurrency.push(curr);
-        list_token[_symbol] = _address_token;
+        arrCurrency.push(Currency(_addressToken, _symbol));
+        listToken[_symbol] = _addressToken;
+    }
+
+    function getCurrencies() public view returns (Currency[] memory) {
+        return arrCurrency;
     }
 
     // Check number of opening room
@@ -135,7 +124,7 @@ contract OneTwoThree {
         uint256 rid = 0;
         for (uint256 i; i < roomNumber; i++) {
             if (
-                rooms[i].Address_1 == _player || rooms[i].Address_2 == _player
+                rooms[i].address_1 == _player || rooms[i].address_2 == _player
             ) {
                 results[rid] = rooms[i];
                 rid += 1;
@@ -145,77 +134,65 @@ contract OneTwoThree {
     }
 
     // Send bet amount to create a room
-    function createRoom( string memory _token) public payable {
+    function createRoom(string memory _token) public payable {
         require(
             ownerCount[msg.sender] <= 10,
             "You have already reached to limit."
         );
 
-        require( 
-            msg.value > 0, 
-            "bet amount must greater than 0"
-        );
+        require(msg.value > 0, "Bet amount must greater than 0");
 
-        if (sha256(bytes(_token)) != sha256(bytes("ETH"))){
-            require(
-                IERC20(list_token[_token]).allowance(msg.sender, address(this)) == msg.value,
-                "You must call approve first in web3"
-            );
-            require(
-                IERC20(list_token[_token]).transferFrom(msg.sender, address(this),msg.value),
-                "transfer failed"
-            );
-            ownerCount[msg.sender] = ownerCount[msg.sender] + 1;
-            playerRoomsCount[msg.sender] = playerRoomsCount[msg.sender] + 1;
-            rooms[roomNumber].status = ROOM_STATUS.ONE_PERSON;
-            emit CreateRoom(rooms[roomNumber]);
-            openingRoomNumber += 1;
-            roomNumber += 1;
-        } else {
-            rooms[roomNumber].status = ROOM_STATUS.ONE_PERSON;
-            ownerCount[msg.sender] = ownerCount[msg.sender] + 1;
-            playerRoomsCount[msg.sender] = playerRoomsCount[msg.sender] + 1;
-            emit CreateRoom(rooms[roomNumber]);
-            openingRoomNumber += 1;
-            roomNumber += 1;
-            }
-        rooms[roomNumber].Address_1 = msg.sender;
-        rooms[roomNumber].Bet_amount = msg.value;
-        rooms[roomNumber].token = _token;
+        checkValidToken(_token, msg.value);
 
+        Room memory room;
+        room.status = ROOM_STATUS.ONE_PERSON;
+        room.address_1 = msg.sender;
+        room.betAmount = msg.value;
+        room.token = _token;
+
+        rooms.push(room);
+
+        ownerCount[msg.sender] += 1;
+        playerRoomsCount[msg.sender] += 1;
+        openingRoomNumber += 1;
+        roomNumber += 1;
+
+        emit CreateRoom(room);
     }
 
     // Player send option here to join a room
     function sendHashcode(uint256 _id, bytes32 _hashcode) public payable {
         Room storage room = rooms[_id];
-        // With owner: Only send option if room is full (after other player sent hashcode)
-        if (room.Address_1 == msg.sender) {
+        // With room owner: Only send option if room is full (after other player sent hashcode)
+        if (room.address_1 == msg.sender) {
             require(room.status == ROOM_STATUS.FULL, "Room is unavailable");
-            require(room.check_2 == false, "You can not send hashcode after the second player have already secret code");
+            require(
+                !room.check_2,
+                "You can not send hashcode after the second player have already secret code"
+            );
             room.hashcode_1 = _hashcode;
         }
         // With guest player: Only send option if room has one person
         else {
             require(
-                room.check_1 == false, 
+                !room.check_1,
                 "You can not send hashcode after room owner have already secret code"
             );
             require(
                 room.status == ROOM_STATUS.ONE_PERSON,
                 "Room is unavailable"
             );
-            //You must implement function approve in web3
+
             require(
-                IERC20(list_token[room.token]).allowance(msg.sender, address(this)) == room.Bet_amount,
-                "you must choose the same token as room owner "
+                msg.value == room.betAmount,
+                "You must bet equal in the first 1"
             );
-            require(
-                IERC20(list_token[room.token]).transferFrom(msg.sender, address(this),room.Bet_amount),
-                "transfer failed"
-            );
+
+            checkValidToken(room.token, room.betAmount);
+
             room.status = ROOM_STATUS.FULL;
             room.hashcode_2 = _hashcode;
-            room.Address_2 = msg.sender;
+            room.address_2 = msg.sender;
 
             playerRoomsCount[msg.sender] = playerRoomsCount[msg.sender] + 1;
 
@@ -231,42 +208,40 @@ contract OneTwoThree {
     function withdraw(uint256 _id) public payable {
         Room storage room = rooms[_id];
         require(
-            msg.sender == room.Address_1 || msg.sender == room.Address_2,
+            msg.sender == room.address_1 || msg.sender == room.address_2,
             "You are not players in this room"
         );
         require(!room.check_1 && !room.check_2, "You can not withdraw");
 
-        if (msg.sender == room.Address_1) {
-            if (sha256(bytes(room.token)) == sha256(bytes("ETH"))) {
-                payable(msg.sender).transfer(room.Bet_amount);
-            }else{
-                IERC20(list_token[room.token]).transfer(msg.sender,room.Bet_amount);
-            }
+        uint256 withdrawAmountMinusFee = (room.betAmount / 100) *
+            (100 - feeRatePercentage);
+
+        if (msg.sender == room.address_1) {
+            transferToken(room.address_1, room.token, withdrawAmountMinusFee);
+
             if (room.status == ROOM_STATUS.FULL) {
-            // If this room has 2 players, send money back to both of them
-                if (sha256(bytes(room.token)) == sha256(bytes("ETH"))){
-                 payable(room.Address_2).transfer(room.Bet_amount);
-                }else {
-                   IERC20(list_token[room.token]).transfer(room.Address_2,room.Bet_amount);
-                }
+                // If this room has 2 players, send money back to both of them
+                transferToken(
+                    room.address_2,
+                    room.token,
+                    withdrawAmountMinusFee
+                );
             } else if (room.status == ROOM_STATUS.ONE_PERSON) {
                 openingRoomNumber -= 1;
             }
 
             room.status = ROOM_STATUS.EMPTY;
             ownerCount[msg.sender] -= 1;
-        } else if (msg.sender == room.Address_2) {
+        } else if (msg.sender == room.address_2) {
             room.status = ROOM_STATUS.ONE_PERSON;
             openingRoomNumber += 1;
 
             // Delete player 2 data in this room
-            room.Address_2 = address(0);
+            room.address_2 = address(0);
             room.hashcode_2 = "";
-            if (sha256(bytes(room.token)) == sha256(bytes("ETH"))) {
-                payable(msg.sender).transfer(room.Bet_amount);
-            }else {
-                IERC20(list_token[room.token]).transfer(msg.sender,room.Bet_amount);
-            }
+
+            transferToken(room.address_2, room.token, withdrawAmountMinusFee);
+
             playerRoomsCount[msg.sender] = playerRoomsCount[msg.sender] - 1;
         }
 
@@ -279,12 +254,12 @@ contract OneTwoThree {
         require(room.status == ROOM_STATUS.FULL, "Room is unavailable");
 
         // Find sender's option by secret key
-        if (msg.sender == room.Address_1) {
+        if (msg.sender == room.address_1) {
             uint256 choose = getPlayerOption(_secretCode, room.hashcode_1);
             require(choose > 0, "the first secret code is wrong");
             room.check_1 = true;
             room.choose_1 = choose;
-        } else if (msg.sender == room.Address_2) {
+        } else if (msg.sender == room.address_2) {
             require(
                 room.hashcode_1 != "",
                 "Player 1 haven't sent option. Please wait."
@@ -299,35 +274,62 @@ contract OneTwoThree {
         if (room.check_1 && room.check_2) {
             room.result = getResult(room.choose_1, room.choose_2);
             room.status = ROOM_STATUS.PLAYED;
-            ownerCount[room.Address_1] = 0;
+            ownerCount[room.address_1] = 0;
+
+            uint256 betAmountMinusFee = ((room.betAmount * 2) / 100) *
+                (100 - feeRatePercentage);
 
             if (room.result == RESULT_TYPE.DRAW) {
-                if (sha256(bytes(room.token)) == sha256(bytes("ETH"))){
-                    payable(room.Address_1).transfer(room.Bet_amount);
-                    payable(room.Address_2).transfer(room.Bet_amount);
-                } else {
-                    IERC20(list_token[room.token]).transfer(room.Address_1,room.Bet_amount);
-                    IERC20(list_token[room.token]).transfer(room.Address_2,room.Bet_amount);
-                }
+                transferToken(
+                    room.address_1,
+                    room.token,
+                    betAmountMinusFee / 2
+                );
+                transferToken(
+                    room.address_2,
+                    room.token,
+                    betAmountMinusFee / 2
+                );
             } else if (room.result == RESULT_TYPE.WIN_1) {
-                    if (sha256(bytes(room.token)) == sha256(bytes("ETH"))) {
-                        payable(room.Address_1).transfer(room.Bet_amount * 2/100*90);
-                        payable(owner).transfer(room.Bet_amount * 2/100*10);
-                    }else{
-                        IERC20(list_token[room.token]).transfer(room.Address_1,room.Bet_amount*2/100*90);
-                        IERC20(list_token[room.token]).transfer(owner,room.Bet_amount*2/100*10);
-                    }
+                transferToken(room.address_1, room.token, betAmountMinusFee);
             } else if (room.result == RESULT_TYPE.WIN_2) {
-                    if (sha256(bytes(room.token)) == sha256(bytes("ETH"))) {
-                        payable(room.Address_2).transfer(room.Bet_amount * 2/100*90);
-                        payable(owner).transfer(room.Bet_amount * 2/100*10);
-                    }else{
-                        IERC20(list_token[room.token]).transfer(room.Address_2,room.Bet_amount*2/100*90);
-                        IERC20(list_token[room.token]).transfer(owner,room.Bet_amount*2/100*10);
-                    }
+                transferToken(room.address_2, room.token, betAmountMinusFee);
             }
 
             emit MakeResult(room);
+        }
+    }
+
+    function checkValidToken(string memory _token, uint256 _amount) private {
+        if (sha256(bytes(_token)) != sha256(bytes(""))) {
+            require(listToken[_token] != address(0), "Token is invalid");
+            require(
+                IERC20(listToken[_token]).allowance(
+                    msg.sender,
+                    address(this)
+                ) == _amount,
+                "You must call approve first in web3"
+            );
+            require(
+                IERC20(listToken[_token]).transferFrom(
+                    msg.sender,
+                    address(this),
+                    _amount
+                ),
+                "Transfer failed"
+            );
+        }
+    }
+
+    function transferToken(
+        address _address,
+        string memory _tokenSymbol,
+        uint256 _amount
+    ) private {
+        if (sha256(bytes(_tokenSymbol)) == sha256(bytes(""))) {
+            payable(_address).transfer(_amount);
+        } else {
+            IERC20(listToken[_tokenSymbol]).transfer(_address, _amount);
         }
     }
 
