@@ -202,9 +202,9 @@ contract GameContract {
         }
     }
 
-    // Hàm rút tiền . Một trong 2 người chơi đều có quyền rút tiền khi 1 trong 2 chưa gửi key bí mật lên hợp đồng.
-    // Nếu chủ phòng là người rút thì tiền cược 2 người chơi sẽ về lại tài khoản của họ và phòng trở về trạng thái available
-    // Nếu người chơi 2 rút tiền thì họ sẽ nhận lại tiền và phòng trở về trạng thái 1.
+    // Withdraw Function . Either player has the right to withdraw money when one of them has not sent the secret key to the contract
+    // If the owner of the room is the one who withdraws, the 2 players bets will be returned to their accounts and the room will be available again
+    // If player 2 withdraws then they get their money back and the room returns to state 1.
     function withdraw(uint256 _id) public payable {
         Room storage room = rooms[_id];
         require(
